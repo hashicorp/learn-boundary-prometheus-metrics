@@ -1,0 +1,111 @@
+version: "3.8"
+
+networks:
+  default:
+  worker:
+
+services:
+  db:
+    image: postgres
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=boundary
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 10s
+      retries: 10
+
+  db-init:
+    image: hashicorp/boundary:latest-f2fa1142d
+    command: ["database", "init", "-config", "/boundary/controller.hcl"]
+    volumes:
+      - "${PWD}/:/boundary/"
+    environment:
+      - BOUNDARY_PG_URL=postgresql://postgres:postgres@db/boundary?sslmode=disable
+    depends_on:
+      db:
+        condition: service_healthy
+
+  controller:
+    image: hashicorp/boundary:latest-f2fa1142d
+    # I had to `docker restart boundary_controller_1` a couple times when
+    # running on an Ubuntu host.
+    entrypoint: sh -c "sleep 3 && exec boundary server -config /boundary/controller.hcl -log-level debug"
+    volumes:
+      - "${PWD}/:/boundary/"
+    hostname: boundary
+    ports:
+      - "9200:9200"
+      - "9201:9201"
+      - "9203:9203"
+    environment:
+      - HOSTNAME=boundary
+      - BOUNDARY_PG_URL=postgresql://postgres:postgres@db/boundary?sslmode=disable
+    depends_on:
+      - db-init
+      - prometheus
+    networks:
+      - default
+      - worker
+
+  worker:
+    image:  hashicorp/boundary:latest-f2fa1142d
+    command: ["server", "-config", "/boundary/worker.hcl", "-log-level", "debug"]
+    volumes:
+      - "${PWD}/:/boundary/"
+    hostname: worker
+    ports:
+      - "9202:9202"
+      - "9204:9203"
+    environment:
+      - HOSTNAME=worker
+    depends_on:
+      - controller
+    networks:
+      - default
+      - worker
+
+# metrics collection with Prometheus and visualization with Grafana
+
+  prometheus:
+    image: prom/prometheus
+    volumes:
+      - "${PWD}/prometheus.yml:/etc/prometheus/prometheus.yml"
+    hostname: prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - default
+      - worker
+
+  grafana:
+    image: grafana/grafana
+    volumes:
+      - "${PWD}/datasource.yml:/etc/grafana/provisioning/datasources/prometheus_datasource.yml"
+    hostname: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    networks:
+      - default
+
+# Private Database Targets - not exposed to host network, only available via Boundary
+
+  postgres:
+    image: postgres
+    environment:
+      - POSTGRES_DB=test1
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 10s
+      retries: 5
+    networks:
+      - worker
