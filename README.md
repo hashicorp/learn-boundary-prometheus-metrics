@@ -1,14 +1,30 @@
 # Docker Deployment
 
-This directory contains an example deployment of Boundary using docker-compose and Terraform. The lab environment is meant to accompany the Hashicorp Learn [Boundary target-aware workers tutorial](https://learn.hashicorp.com/tutorials/boundary/target-aware-workers).
+This directory contains an example deployment of Boundary using docker-compose
+and Terraform. The lab environment is meant to accompany the Hashicorp Learn
+[Boundary health metrics
+tutorial](https://learn.hashicorp.com/tutorials/boundary/health-metrics).
 
-In this example, Boundary is deployed using the [hashicorp/boundary](https://hub.docker.com/r/hashicorp/boundary) Dockerhub image. The Boundary service ports are forwarded to the host machine to mimic being in a "public" network. Boundary is provisioned via Terraform to include targets for popular databases:
+In this example, Boundary is deployed using the
+[hashicorp/boundary](https://hub.docker.com/r/hashicorp/boundary) Dockerhub
+image. The Boundary service ports are forwarded to the host machine to mimic
+being in a "public" network. Boundary is provisioned via Terraform to include a
+postgres databases target.
 
+This deployment includes:
+
+- boundary controller
+- boundary worker
+- boundary database
+- prometheus
+- grafana
 - postgres
-- redis
-- mysql
 
-All of these targets are on containers that are not port forwarded to the host machine in order to mimic them residing in a private network. Boundary is configured to reach these targets via Docker DNS (domain names defined by their service name in docker-compose). Clients can reach these targets via Boundary, and an example is given below using the redis-cli.
+The postgres target container is not port forwarded to the host machine in order
+to mimic residing in a private network. Boundary is configured to reach this
+target via Docker DNS (domain names defined by their service name in
+docker-compose). Clients can reach the target via Boundary, and an example is
+given below.
 
 ## Getting Started 
 
@@ -17,19 +33,19 @@ There is a helper script called `run` in this directory. You can use this script
 Start the docker-compose deployment:
 
 ```bash
-./run all
+./deploy all
 ```
 
 To login your Boundary CLI:
 
 ```bash
-./run login
+./deploy login
 ```
 
 To stop all containers and start from scratch:
 
 ```bash
-./run cleanup
+./deploy cleanup
 ```
 
 Login to the UI:
@@ -48,17 +64,11 @@ Authentication information:
   Token:           at_NXiLK0izep_s14YkrMC6A4MajKyPekeqTTyqoFSg3cytC4cP8sssBRe5R8cXoerLkG7vmRYAY5q1Ksfew3JcxWSevNosoKarbkWABuBWPWZyQeUM1iEoFcz6uXLEyn1uVSKek7g9omERHrFs
 ```
 
-## Connect to Private Redis
+## Connect to Postgres
 
-Once the deployment is live, you can connect to the containers (assuming their clients are
-installed on your host system). For example, we'll use [redis-cli](https://redis.io/topics/rediscli) to ping the Redis container via Boundary:
-
-```bash
-$ boundary connect -exec redis-cli -target-id ttcp_Mgvxjg8pjP -- -p {{boundary.port}} ping
-PONG
-```
-
-Explore the other containers such as Postgres and Mysql (default passwords are set via env vars in the docker-compose.yml file).
+Once the deployment is live, you can connect to the container (assuming the
+postgres client is installed on your host system). Log into the Postgres
+container via Boundary, providing the password `postgres` when prompted:
 
 ```bash
 $ boundary connect postgres -target-name postgres -target-scope-name databases -username postgres -- -l
@@ -75,11 +85,4 @@ Password for user postgres:
 (4 rows)
 ```
 
-```bash
-$ boundary connect postgres -target-name postgres -target-scope-name databases -username postgres -- -l
-psql: error: server closed the connection unexpectedly
-	This probably means the server terminated abnormally
-	before or while processing the request.
-```
-
-The mysql target is purposefully misconfigured with worker filters and corrected in the tutorial.
+Default passwords are set via env vars in the docker-compose.yml file.
