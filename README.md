@@ -3,7 +3,7 @@
 This directory contains an example deployment of Boundary using docker-compose
 and Terraform. The lab environment is meant to accompany the Hashicorp Learn
 [Boundary health metrics
-tutorial](https://learn.hashicorp.com/tutorials/boundary/health-metrics).
+tutorial](https://learn.hashicorp.com/tutorials/boundary/prometheus-metrics).
 
 In this example, Boundary is deployed using the
 [hashicorp/boundary](https://hub.docker.com/r/hashicorp/boundary) Dockerhub
@@ -28,7 +28,8 @@ given below.
 
 ## Getting Started 
 
-There is a helper script called `run` in this directory. You can use this script to deploy, login, and cleanup.
+There is a helper script called `deploy` in this directory. You can use this
+script to deploy, login, and cleanup.
 
 Start the docker-compose deployment:
 
