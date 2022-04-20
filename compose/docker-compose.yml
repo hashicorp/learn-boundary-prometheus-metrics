@@ -20,7 +20,7 @@ services:
       retries: 10
 
   db-init:
-    image: hashicorp/boundary:latest-f2fa1142d
+    image: hashicorp/boundary:0.8.0
     command: ["database", "init", "-config", "/boundary/controller.hcl"]
     volumes:
       - "${PWD}/:/boundary/"
@@ -31,7 +31,7 @@ services:
         condition: service_healthy
 
   controller:
-    image: hashicorp/boundary:latest-f2fa1142d
+    image: hashicorp/boundary:0.8.0
     # I had to `docker restart boundary_controller_1` a couple times when
     # running on an Ubuntu host.
     entrypoint: sh -c "sleep 3 && exec boundary server -config /boundary/controller.hcl -log-level debug"
@@ -53,7 +53,7 @@ services:
       - worker
 
   worker:
-    image:  hashicorp/boundary:latest-f2fa1142d
+    image:  hashicorp/boundary:0.8.0
     command: ["server", "-config", "/boundary/worker.hcl", "-log-level", "debug"]
     volumes:
       - "${PWD}/:/boundary/"
