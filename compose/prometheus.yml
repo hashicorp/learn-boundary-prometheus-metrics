@@ -37,9 +37,3 @@ scrape_configs:
 
     static_configs:
       - targets: ["worker:9203"]
-
-remote_write:
-  - url: https://prometheus-prod-10-prod-us-central-0.grafana.net/api/prom/push
-    basic_auth:
-      username: 385676
-      password: eyJrIjoiOTg2MzEzNTRlYTA0YzlhZGYwNzFhZTQ1OGM4NTBjMzJjYmY4NTc0MiIsIm4iOiJkb2NrZXIiLCJpZCI6NjI3MTA5fQ==
