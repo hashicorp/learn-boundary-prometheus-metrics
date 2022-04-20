@@ -8,11 +8,11 @@ listener "tcp" {
 	tls_disable = true
 }
 
-listener "tcp" {
-  address = "0.0.0.0:9203"
-	purpose = "ops"
-	tls_disable = true
-}
+// listener "tcp" {
+//   address = "0.0.0.0:9203"
+// 	purpose = "ops"
+// 	tls_disable = true
+// }
 
 worker {
   name = "worker"
