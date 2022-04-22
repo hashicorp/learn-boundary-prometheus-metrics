@@ -156,7 +156,7 @@ resource "boundary_target" "db" {
   description              = "Boundary Postgres server"
   scope_id                 = boundary_scope.project.id
   session_connection_limit = -1
-  session_max_seconds      = 2
+  session_max_seconds      = 200
   default_port             = 5432
   host_set_ids = [
     boundary_host_set.local.id
@@ -186,7 +186,7 @@ resource "boundary_target" "postgres" {
   description              = "postgres server"
   scope_id                 = boundary_scope.project.id
   session_connection_limit = -1
-  session_max_seconds      = 20
+  session_max_seconds      = 300
   default_port             = 5432
   host_set_ids = [
     boundary_host_set.postgres.id
